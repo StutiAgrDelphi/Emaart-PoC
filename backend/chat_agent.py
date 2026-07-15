@@ -153,12 +153,8 @@ def _build_model() -> AzureOpenAI:
     )
 
 
-# Set up DB memory (multi-turn conversation history per session_id)
 _db = SqliteDb(db_file=os.path.join(os.path.dirname(__file__), "agent_memory.db"))
 
-# Built lazily on first use, not at import time — so the app can still start
-# up cleanly and report a clear error only when /api/chat is actually hit,
-# rather than crashing the whole server if Azure env vars are missing.
 _agent_instance: "Agent | None" = None
 
 
