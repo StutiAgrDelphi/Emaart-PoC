@@ -12,9 +12,6 @@ from typing import Optional
 import powerbi_semantic
 from chat_agent import get_dashboard_agent
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",
