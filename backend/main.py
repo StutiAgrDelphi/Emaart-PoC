@@ -11,6 +11,7 @@ from typing import Optional
 
 import powerbi_semantic
 from chat_agent import get_dashboard_agent
+import insights_agent
 
 logging.basicConfig(
     level=logging.INFO,
@@ -206,6 +207,34 @@ def get_sales_vs_forecast(
         return powerbi_semantic.get_sales_vs_forecast(filters)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/insights")
+def get_insights(
+    year: Optional[int] = None, month: Optional[str] = None, product: Optional[str] = None,
+    segment: Optional[str] = None, country: Optional[str] = None, discount_band: Optional[str] = None
+):
+    filters = {"year": year, "month": month, "product": product, "segment": segment,
+               "country": country, "discount_band": discount_band}
+    try:
+        kpis = powerbi_semantic.get_kpis(filters)
+        by_product = powerbi_semantic.get_sales_by_product(filters)
+        by_country = powerbi_semantic.get_sales_by_country(filters)
+        by_segment = powerbi_semantic.get_sales_by_segment(filters)
+        discount_impact = powerbi_semantic.get_discount_impact(filters)
+        vs_forecast = powerbi_semantic.get_sales_vs_forecast(filters)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    try:
+        return insights_agent.generate_insights(
+            filters, kpis, by_product, by_country, by_segment, discount_impact, vs_forecast
+        )
+    except RuntimeError as e:
+        logger.error(f"[INSIGHTS CONFIG ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.exception("[INSIGHTS ERROR]")
+        raise HTTPException(status_code=502, detail=f"Insights agent failed: {e}")
 
 @app.get("/api/records")
 def get_records(

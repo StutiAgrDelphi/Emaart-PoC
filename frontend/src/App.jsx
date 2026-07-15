@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { DollarSign, TrendingUp, Package, Percent, FileText } from 'lucide-react';
 import ChatWidget from './ChatWidget';
+import InsightsPanel from './InsightsPanel';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -145,6 +146,9 @@ function App() {
             <KPICard title="Profit Margin" value={`${(kpis?.profit_margin_pct || 0).toFixed(2)}%`} icon={<Percent className="text-yellow-500" size={24} />} colorClass="bg-yellow-50" />
             <KPICard title="Avg Discount" value={`${(kpis?.avg_discount_pct || 0).toFixed(2)}%`} icon={<TrendingUp className="text-red-500" size={24} />} colorClass="bg-red-50" />
           </div>
+
+          {/* Insights */}
+          <InsightsPanel filters={selectedFilters} />
 
           {/* Charts Grid */}
           <div className="charts-grid">
