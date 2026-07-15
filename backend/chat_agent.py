@@ -121,37 +121,7 @@ AGENT_INSTRUCTIONS = [
 ]
 
 
-def _build_model() -> AzureOpenAI:
-    """Build the Azure OpenAI model client, using the SAME env var names as
-    chat_agent.py (the previously working agent) — NOT '_NAME' suffixed
-    variants — since that's what's actually set in backend/.env."""
-    deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
-    api_key = os.getenv("AZURE_OPENAI_API_KEY")
-    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-10-21")
-
-    missing = [
-        name
-        for name, val in [
-            ("AZURE_OPENAI_DEPLOYMENT", deployment),
-            ("AZURE_OPENAI_API_KEY", api_key),
-            ("AZURE_OPENAI_ENDPOINT", azure_endpoint),
-        ]
-        if not val
-    ]
-    if missing:
-        raise RuntimeError(
-            "Missing required Azure OpenAI environment variable(s): " + ", ".join(missing)
-        )
-
-    return AzureOpenAI(
-        id=deployment,
-        azure_deployment=deployment,
-        api_key=api_key,
-        azure_endpoint=azure_endpoint,
-        api_version=api_version,
-    )
-
+from azure_model import build_azure_model
 
 _db = SqliteDb(db_file=os.path.join(os.path.dirname(__file__), "agent_memory.db"))
 
@@ -163,7 +133,7 @@ def get_dashboard_agent() -> Agent:
     if _agent_instance is None:
         _agent_instance = Agent(
             name="Dashboard Assistant",
-            model=_build_model(),
+            model=build_azure_model(),
             tools=[
                 get_filters_tool, get_kpis_tool, get_sales_trend_tool,
                 get_sales_by_product_tool, get_sales_by_country_tool,

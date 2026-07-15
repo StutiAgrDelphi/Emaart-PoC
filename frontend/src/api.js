@@ -66,3 +66,8 @@ export const sendChatMessage = async (message, sessionId) => {
   const { data } = await api.post('/chat', { message, session_id: sessionId });
   return data; // { response, session_id }
 };
+
+export const fetchInsights = async (filters) => {
+  const { data } = await api.get('/insights', { params: cleanParams(filters) });
+  return data; // { bullets: [...], generated_at }
+};
