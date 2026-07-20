@@ -1,7 +1,0 @@
-.env
-financial_data.db
-agent_sessions.db
-__pycache__/
-*.pyc
-.venv/
-venv/

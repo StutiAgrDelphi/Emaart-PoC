@@ -1,0 +1,33 @@
+{
+  "name": "chat-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@azure/msal-node": "^5.4.1",
+    "@azure/openai": "^1.0.0-beta.12",
+    "@microsoft/fabric-app-data": "^1.1.0",
+    "@microsoft/rayfin-core": "^1.33.2",
+    "@microsoft/rayfin-data": "^1.33.2",
+    "@microsoft/rayfin-lib": "^1.33.2",
+    "axios": "^1.18.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}

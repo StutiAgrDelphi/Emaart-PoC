@@ -1,0 +1,48 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.5.56/dab.draft.schema.json",
+  "entities": {
+    "ChatMessage": {
+      "source": "ChatMessages",
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            "*"
+          ]
+        }
+      ],
+      "x-schema": {
+        "fields": {
+          "id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "session_id": {
+            "dbType": "NVARCHAR(MAX)",
+            "nullable": false
+          },
+          "role": {
+            "dbType": "NVARCHAR(MAX)",
+            "nullable": false
+          },
+          "content": {
+            "dbType": "NVARCHAR(MAX)",
+            "nullable": false
+          },
+          "timestamp": {
+            "dbType": "DATETIME2",
+            "nullable": false
+          }
+        },
+        "constraints": {
+          "primaryKey": {
+            "name": "PK_ChatMessages",
+            "columns": [
+              "id"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

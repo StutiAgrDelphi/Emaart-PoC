@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-pandas
-agno
-openai
-sqlalchemy
-python-dotenv
-msal
-requests

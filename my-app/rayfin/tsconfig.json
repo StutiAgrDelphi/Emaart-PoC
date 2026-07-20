@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "ESNext.Decorators", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": ".temp/compiled",
+    "rootDir": ".",
+    "noEmit": false,
+    "strict": true
+  },
+  "include": ["data"]
+}
