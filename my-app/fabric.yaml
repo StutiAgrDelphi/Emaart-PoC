@@ -1,0 +1,7 @@
+activeProfile: default
+profiles:
+  default:
+    semanticModels:
+      sales:
+        workspaceId: "1d846246-debc-4eb5-9c38-6dc32e84760a"
+        itemId: "477a0e88-cc2b-4354-950b-2e2ac4785a8a"

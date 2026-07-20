@@ -1,0 +1,15 @@
+{
+  "deployments": {
+    "emaart-poc": {
+      "fabricItemId": "c9114063-d4f3-4f6b-93d2-88ad4605d5b8",
+      "fabricApiUrl": "https://cb48ca2c6fd1483fb400b1f7c4ed3c16.pbidedicated.windows.net/webapi/capacities/cb48ca2c-6fd1-483f-b400-b1f7c4ed3c16/workloads/BaaS/BaaSService/automatic/v1/workspaces/1d846246-debc-4eb5-9c38-6dc32e84760a/appbackends/c9114063-d4f3-4f6b-93d2-88ad4605d5b8/",
+      "fabricWorkspaceId": "1d846246-debc-4eb5-9c38-6dc32e84760a",
+      "fabricTenantId": "902eab19-c66d-43b3-91e5-d4c00ec64e88",
+      "publishableKey": "pk-sVBqaCwvABhinKG899og",
+      "hostingUrl": "https://nice-oasis-b63cc85641-uaenorth.webapp.fabricapps.net",
+      "fabricDeepLink": "https://app.fabric.microsoft.com/groups/1d846246-debc-4eb5-9c38-6dc32e84760a/appbackends/c9114063-d4f3-4f6b-93d2-88ad4605d5b8?ctid=902eab19-c66d-43b3-91e5-d4c00ec64e88",
+      "deployedAt": "2026-07-17T06:24:23.132Z"
+    }
+  },
+  "active": "emaart-poc"
+}
