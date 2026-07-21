@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 import { toolSchemas, executeTool } from './tools';
+import { AuthedRequest } from './auth';
 
 const systemInstructions = `You are a data analyst assistant for a financial sales dashboard covering 2013-2014.
 Known dimension values (use these exact strings when calling tools, do not guess or invent variants):
@@ -16,9 +17,10 @@ Format currency values clearly (e.g. $1,234,567) and percentages with 2 decimal 
 Keep answers concise and conversational, a few sentences, not a report.
 If a question needs comparison across multiple filters (e.g. 'compare Germany vs France'), call the relevant tool once per filter value and compare the results yourself.`;
 
-export async function handleChat(req: Request, res: Response) {
+export async function handleChat(req: AuthedRequest, res: Response) {
     try {
         const { message, history = [], session_id } = req.body;
+        const userCountry = req.user?.country;
         
         const sanitizedHistory = (Array.isArray(history) ? history : []).filter(
             (m: any) => m && (m.role === 'user' || m.role === 'assistant')
@@ -27,8 +29,12 @@ export async function handleChat(req: Request, res: Response) {
 
         const currentSessionId = session_id || Math.random().toString(36).substring(7);
 
+        const scopedSystemPrompt = userCountry
+            ? `${systemInstructions}\n\nIMPORTANT: This user's access is restricted to ${userCountry} only. All tool results are automatically scoped to ${userCountry}, regardless of what country is requested. If the user asks about another country or a comparison across countries, tell them plainly that you can only access ${userCountry}'s data — do not present ${userCountry}'s numbers as if they belong to the requested country.`
+            : systemInstructions;
+
         const messages = [
-            { role: "system", content: systemInstructions },
+            { role: "system", content: scopedSystemPrompt },
             ...sanitizedHistory,
             { role: "user", content: message }
         ];
@@ -73,8 +79,7 @@ export async function handleChat(req: Request, res: Response) {
                     let result;
                     try {
                         const args = JSON.parse(call.function?.arguments || "{}");
-                        result = await executeTool(call.function?.name || "", args);
-                    } catch (e: any) {
+                        result = await executeTool(call.function?.name || "", args, req.user?.country);                    } catch (e: any) {
                         result = { error: e.message };
                     }
 

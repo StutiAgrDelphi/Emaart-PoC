@@ -1,5 +1,32 @@
 import { getFabricClient } from "@/lib/fabric-client";
 import { fabricConfig } from "@/fabric.generated";
+import { getRayfinAccessToken } from "@/lib/get-rayfin-token";
+
+let cachedCountry: string | null | undefined;
+
+export async function getMyCountry(): Promise<string | null> {
+    if (cachedCountry !== undefined) return cachedCountry;
+
+    const token = getRayfinAccessToken();
+    const response = await fetch(
+        `${import.meta.env.VITE_CHAT_FUNCTION_URL}/me`,
+        {
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        }
+    );
+
+    if (!response.ok) {
+        console.error("Failed to resolve current user's country:", response.status);
+        cachedCountry = null;
+        return null;
+    }
+
+    const data = await response.json();
+    cachedCountry = data.country ?? null;
+    return cachedCountry ?? null;
+}
 
 // Helper to get the generated semantic model alias automatically
 const modelAlias = Object.keys((fabricConfig as any).semanticModels)[0];
@@ -13,13 +40,13 @@ export interface DashboardFilters {
     discount_band?: string;
 }
 
-function buildFilterString(args: DashboardFilters): string {
+function buildFilterString(args: DashboardFilters, userCountry?: string | null): string {
     const filters = [];
     if (args.year) filters.push(`TREATAS({${args.year}}, FinancialData[Year])`);
     if (args.month) filters.push(`TREATAS({"${args.month}"}, FinancialData[Month Name])`);
     if (args.product) filters.push(`TREATAS({"${args.product}"}, FinancialData[Product])`);
     if (args.segment) filters.push(`TREATAS({"${args.segment}"}, FinancialData[Segment])`);
-    if (args.country) filters.push(`TREATAS({"${args.country}"}, FinancialData[Country])`);
+    if (userCountry) filters.push(`TREATAS({"${userCountry}"}, FinancialData[Country])`);
     if (args.discount_band) filters.push(`TREATAS({"${args.discount_band}"}, FinancialData[Discount Band])`);
     return filters.join(", ");
 }
@@ -54,7 +81,8 @@ export async function executeDaxQuery(query: string): Promise<any[]> {
 // --------------------------------------------------------
 
 export async function fetchKPIs(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const dax = `EVALUATE SUMMARIZECOLUMNS(${filters ? filters + ", " : ""}"Total Sales", [Total Sales], "Total Profit", [Total Profit], "Total Units Sold", [Total Units Sold], "Total Forecast", [Total Forecast], "Profit Margin %", [Profit Margin %], "Avg Discount %", [Avg Discount %])`;
     const res = await executeDaxQuery(dax);
     if (res.length > 0) {
@@ -72,7 +100,8 @@ export async function fetchKPIs(args: DashboardFilters = {}) {
 }
 
 export async function fetchSalesTrend(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE SUMMARIZECOLUMNS(FinancialData[Year], FinancialData[Month Number], FinancialData[Month Name]${filterClause}, "Total Sales", [Total Sales], "Total Profit", [Total Profit]) ORDER BY FinancialData[Year], FinancialData[Month Number]`;
     const res = await executeDaxQuery(dax);
@@ -84,35 +113,40 @@ export async function fetchSalesTrend(args: DashboardFilters = {}) {
 }
 
 export async function fetchSalesByProduct(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE SUMMARIZECOLUMNS(FinancialData[Product]${filterClause}, "Total Sales", [Total Sales], "Total Profit", [Total Profit]) ORDER BY [Total Sales] DESC`;
     return await executeDaxQuery(dax);
 }
 
 export async function fetchSalesByCountry(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE SUMMARIZECOLUMNS(FinancialData[Country]${filterClause}, "Total Sales", [Total Sales]) ORDER BY [Total Sales] DESC`;
     return await executeDaxQuery(dax);
 }
 
 export async function fetchSalesBySegment(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE SUMMARIZECOLUMNS(FinancialData[Segment]${filterClause}, "Total Sales", [Total Sales]) ORDER BY [Total Sales] DESC`;
     return await executeDaxQuery(dax);
 }
 
 export async function fetchDiscountImpact(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE SUMMARIZECOLUMNS(FinancialData[Discount Band]${filterClause}, "Profit", [Total Profit], "Avg_Discount", AVERAGE(FinancialData[Discounts]))`;
     return await executeDaxQuery(dax);
 }
 
 export async function fetchSalesVsForecast(args: DashboardFilters = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE SUMMARIZECOLUMNS(FinancialData[Month Number], FinancialData[Month Name]${filterClause}, "Sales", [Total Sales], "Forecast", [Total Forecast]) ORDER BY FinancialData[Month Number]`;
     const res = await executeDaxQuery(dax);
@@ -124,7 +158,8 @@ export async function fetchSalesVsForecast(args: DashboardFilters = {}) {
 }
 
 export async function fetchRecords(args: DashboardFilters & { page?: number, page_size?: number } = {}) {
-    const filters = buildFilterString(args);
+    const userCountry = await getMyCountry();
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
     const dax = `EVALUATE CALCULATETABLE(FinancialData${filterClause})`;
     console.log("FETCH_RECORDS_DAX:", dax);
@@ -173,31 +208,57 @@ export async function fetchFilterValues() {
 
 
 export async function fetchInsights(payload: any) {
-    const apiUrl = import.meta.env.VITE_CHAT_FUNCTION_URL;
-    if (!apiUrl) throw new Error("VITE_CHAT_FUNCTION_URL not set");
+    const token = getRayfinAccessToken();
 
-    const response = await fetch(`${apiUrl}/insights`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
+    const response = await fetch(
+        `${import.meta.env.VITE_CHAT_FUNCTION_URL}/insights`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token
+                    ? { Authorization: `Bearer ${token}` }
+                    : {}),
+            },
+            body: JSON.stringify(payload),
+        }
+    );
+
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `Insights request failed (${response.status})`);
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || `Insights request failed (${response.status})`
+        );
+    }
+
     return data;
 }
- 
 
 export async function sendChatMessage(payload: any) {
-    const apiUrl = import.meta.env.VITE_CHAT_FUNCTION_URL;
-    if (!apiUrl) throw new Error("VITE_CHAT_FUNCTION_URL not set");
+    const token = getRayfinAccessToken();
 
-    const response = await fetch(`${apiUrl}/chat`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
+    const response = await fetch(
+        `${import.meta.env.VITE_CHAT_FUNCTION_URL}/chat`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token
+                    ? { Authorization: `Bearer ${token}` }
+                    : {}),
+            },
+            body: JSON.stringify(payload),
+        }
+    );
+
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `Chat request failed (${response.status})`);
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || `Chat request failed (${response.status})`
+        );
+    }
+
     return data;
 }
- 

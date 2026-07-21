@@ -91,23 +91,23 @@ export const toolSchemas: any[] = [
     }
 ];
 
-function buildFilterString(args: any): string {
+function buildFilterString(args: any, userCountry?: string | null): string {
     const filters = [];
     if (args.year) filters.push(`TREATAS({${args.year}}, FinancialData[Year])`);
     if (args.month) filters.push(`TREATAS({"${args.month}"}, FinancialData[Month Name])`);
     if (args.product) filters.push(`TREATAS({"${args.product}"}, FinancialData[Product])`);
     if (args.segment) filters.push(`TREATAS({"${args.segment}"}, FinancialData[Segment])`);
-    if (args.country) filters.push(`TREATAS({"${args.country}"}, FinancialData[Country])`);
+    if (userCountry) filters.push(`TREATAS({"${userCountry}"}, FinancialData[Country])`);
     if (args.discount_band) filters.push(`TREATAS({"${args.discount_band}"}, FinancialData[Discount Band])`);
     return filters.join(", ");
 }
 
-export async function executeTool(name: string, args: any): Promise<any> {
+export async function executeTool(name: string, args: any, userCountry?: string | null): Promise<any> {
     if (process.env.DEBUG) {
         console.log("Tool called:", name, "Args:", args);
     }
 
-    const filters = buildFilterString(args);
+    const filters = buildFilterString(args, userCountry);
     const filterClause = filters ? `, ${filters}` : "";
 
     switch (name) {
